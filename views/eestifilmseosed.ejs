@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="utf-8">
+    <title>Filmide seosed</title>
+</head>
+<body>
+
+    <img src="/pic/veebiprogrammeerimine_2026_ID.png" alt="bänner">
+    <h1>Filmide seosed</h1>
+
+    <table border="1">
+        <tr>
+            <th>Inimene</th>
+            <th>Film</th>
+            <th>Amet</th>
+            <th>Tegelaskuju</th>
+        </tr>
+
+        <% seosedList.forEach(seos => { %>
+            <tr>
+                <td>
+                    <%= seos.first_name %>
+                    <%= seos.last_name %>
+                </td>
+                <td><%= seos.movie_title %></td>
+                <td><%= seos.profession_title %></td>
+                <td><%= seos.character_name || '-' %></td>
+            </tr>
+        <% }); %>
+
+    </table>
+	<hr>
+	<ul>
+		<li><a href="/eestifilm/seosed_lisa">Lisa uus seos</a></li>
+		<li><a href="/eestifilm">Tagasi filmide avalehele</a></li>
+	</ul>
+</body>
+</html>

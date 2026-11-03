@@ -1,11 +1,18 @@
 const express = require('express');
-const dateTimeET = require("./src/dateTimeET.js");
-const textRef = "public/txt/vanasonad.txt";
-const regtextRef = "public/txt/visits.txt";
 const fs = require ('fs').promises;
 //moodul POST päringute lahtiharutamiseks, parsimiskes
 const bodyparser = require('body-parser');
-//dateTimeET.weekDay() + ', ' + dateTimeET.date(Math.round(Math.random())) + ', kell oli lehe avamise hetkel: ' + dateTimeET.time()
+require('dotenv').config();
+//moodul andmebaasiga suhtlemiseks (koos async ehk ootamise osaga)
+const mysql = require('mysql2/promise');
+//moodul .env keskkonnam,uutujate lugemiseks
+
+
+const dateTimeET = require("./src/dateTimeET.js");
+
+const textRef = "public/txt/vanasonad.txt";
+const regtextRef = "public/txt/visits.txt";
+
 //käivitan funk. express() ja annan nimeks app
 const app = express();
 //määrame renderdus mootori: EJS
@@ -16,16 +23,53 @@ app.use(express.static('public'));
 app.use(bodyparser.urlencoded({extended: false}));
 
 //marsruudid
-app.get('/', (req, res)=>{
+app.get('/', async (req, res)=>{
 	const dayNow = dateTimeET.weekDay();
 	const dateNow = dateTimeET.date(0);
 	const timeNow = dateTimeET.time();
-	//res.send('Express.js veeb läkski käima!');
-	res.render('index', {dayNow: dayNow, dateNow: dateNow, timeNow: timeNow});
+	let conn;
+	let latestPhoto = null;
+	try {
+		conn = await mysql.createConnection({
+			host: process.env.DB_HOST,
+			user: process.env.DB_USER,
+			password: process.env.DB_PASS,
+			database: process.env.DB_NAME
+		});
+		const sqlReq = 'SELECT filename, alttext FROM galleryphotos WHERE id=(SELECT MAX(id) FROM galleryphotos WHERE privacy=? AND deleted IS NULL)';
+		const [sqlRes] = await conn.execute(sqlReq, [3]);
+		if (sqlRes.length > 0) {
+			latestPhoto = sqlRes[0];
+		}
+	}
+	catch (err) {
+		console.log('Andmebaasiga suhtlemise viga: ' + err);
+	}
+	finally {
+		if (conn) {
+			await conn.end();
+		}
+	}
+	res.render('index', {
+		dayNow: dayNow,
+		dateNow: dateNow,
+		timeNow: timeNow,
+		latestPhoto: latestPhoto
+	});
 });
 
 app.get('/minust', (req, res)=>{
 	res.render('minust');
+});
+
+//sisseloginud kasutajate avaleht
+app.get('/home', (req, res) =>{
+	res.render('home');
+});
+
+//valja logimine
+app.get('/logout', (req, res) =>{
+	res.redirect('/');
 });
 
 app.get('/vanasona', async (req, res)=>{
@@ -40,41 +84,28 @@ app.get('/vanasona', async (req, res)=>{
 	}
 });
 
-app.get('/regvisit', async (req, res)=>{
-	res.render('regvisit');
-})
+//külastuse marsruudid
+const kylastusRouter = require('./routes/kylastusRoutes');
+app.use('/visits', kylastusRouter);
 
-app.post('/regvisit', async (req, res)=>{
-	try {
-		const dateNow = dateTimeET.date(0);
-		const timeNow = dateTimeET.time();
-		await fs.appendFile(regtextRef, req.body.inputName + ',' + dateNow + ',' + timeNow + ';');
-		res.render('regvisit');
-	}
-	catch (err) {
-		console.log(err);
-		res.render('regvisit');
-	}
-	
-});
+//eesti filmi marsruudid
+const eestiFilmRouter = require('./routes/eestifilmRoutes');
+app.use('/eestifilm', eestiFilmRouter);
 
-app.get('/lastvisit', async (req, res)=>{
-	try {
-		const data = await fs.readFile(regtextRef, 'utf8');
-		const visits = data.split(';');
-		const lastVisit = visits[visits.length - 2];
-		const visitParts = lastVisit.split(',');
-		const name = visitParts[0];
-		const date = visitParts[1];
-		const time = visitParts[2];
-		const lastVisitText = 'Viimati registreeritud külastus ' + date + ', kell ' + time + ', selleks oli ' + name + '.';
-		res.render('lastvisit', {lastVisit: lastVisitText});
-	}
-	catch (err) {
-		console.log(err);
-		res.render('lastvisit', {lastVisit: 'Külastust ei leitud!'});
-	}
-	
-});
+//galeriipiltide üleslaadimine
+const galleryPhotoUploadRouter = require('./routes/galleryPhotoUploadRoutes');
+app.use('/galleryPhotoUpload', galleryPhotoUploadRouter);
+
+//fotogalerii
+const galleryRouter = require('./routes/galleryRoutes');
+app.use('/gallery', galleryRouter);
+
+//fotogalerii
+const signupRouter = require('./routes/signupRoutes');
+app.use('/signup', signupRouter);
+
+//sisselogimine
+const signinRouter = require('./routes/signinRoutes');
+app.use('/signin', signinRouter);
 
 app.listen(5222);

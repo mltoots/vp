@@ -11,13 +11,26 @@
 	<img src="pic/Dessi.jpg" alt="foto" width="400">
 	<p><i>Dessi</i></p>
 	<hr>
+	<h2>Uus avalik pilt</h2>
+	<% if (latestPhoto) { %>
+    <img src="/gallery/normal/<%= latestPhoto.filename %>" alt="<%= latestPhoto.alttext || 'Uusim avalik foto' %>">
+	<figcaption>
+            <%= latestPhoto.alttext || 'Uusim avalik foto' %>
+        </figcaption>
+    </figure>
+	<% } %>
+	<hr>
 	<p>Täna <%= dayNow %>, <%= dateNow %>, kell oli lehe avamise hetkel: <%= timeNow%>.</p>
 	<h2>Vaata ka:</h2>
 	<ul>
-	<li><a href="/minust">Miks tulin just TLÜ-sse õppima?</a></li>
-	<li><a href="/vanasona">Tänane vanasõna</a></li>
-	<li><a href="/regvisit">Registreeri oma külastus</a></li>
-	<li><a href="/lastvisit">Viimane külastaja</a></li>
+		<li><a href="/signup">Kasutajakonto loomine</a></li>
+		<li><a href="/signin">Sisselogimine</a></li>
+		<br>
+		<li><a href="/minust">Miks tulin just TLÜ-sse õppima?</a></li>
+		<li><a href="/vanasona">Tänane vanasõna</a></li>
+		<li><a href="/visits/regvisit">Registreeri külastused</a></li>
+		<li><a href="/visits/lastvisit">Viimane külastaja</a></li>
+		<li><a href="/eestifilm">Eesti film</a></li>
 	</ul>
 </body>
 </html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="utf-8">
+    <title>Mia Liisa Toots, veebiprogrammeerimine</title>
+	<style>
+    .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .gallery figure {
+        margin: 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+    .gallery img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+    .gallery figcaption {
+        margin-top: 10px;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+    <img src="/pic/veebiprogrammeerimine_2026_ID.png" alt="bänner">
+	<h1>Fotogalerii</h1>
+	<hr>
+	 <% if (photoList.length > 0) { %>
+	 <div class="gallery">
+        <% photoList.forEach(photo => { %>
+            <figure>
+                <img src="/gallery/normal/<%= photo.filename %>"
+                     alt="<%= photo.alttext || 'Galerii foto' %>"
+                     width="300">
+
+                <figcaption>
+                    <%= photo.alttext || 'Galerii foto' %>
+                </figcaption>
+            </figure>
+        <% }); %>
+		</div>
+    <% } else { %>
+        <p>Galeriis pole veel fotosid.</p>
+    <% } %>
+	<hr>
+    <ul>
+        <li><a href="/home">Tagasi avalehele</a></li>
+		<li><a href="/logout">Logi välja</a></li>
+    </ul>
+</body>
+</html>
